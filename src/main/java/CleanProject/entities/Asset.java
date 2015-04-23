@@ -1,75 +1,43 @@
 package CleanProject.entities;
 
 
-
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-
-/**
- * Created by florian.polter on 10.04.14.
- */
 
 @Entity(name = Asset.ENTITY_NAME)
 public class Asset {
 
 	public static final String ENTITY_NAME = "Asset";
-
-
-	public static enum Status {
-		ENABLED(1), DISABLED(0), ARCHIVED(2), DELETED(3);
-
-		private int status;
-
-		private Status(int status) {
-			this.status = status;
-		}
-
-		@Override
-		public String toString() {
-			return "" + status;
-		}
-	}
-
 	@Id
 	@Column(name = Asset.ENTITY_NAME + "ID")
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
-
 	@Basic(optional = false)
 	@Column(unique = true)
 	private String name;
-
 	@Basic(optional = false)
 	@Column(unique = true)
 	private String path;
-
 	@Basic(optional = true)
 	private long fileSize;
-
 	@Basic(optional = true)
 	@Lob
 	private String description;
-
 	@Enumerated(EnumType.STRING)
 	@Basic(optional = false)
 	private Status status;
-
 	@ManyToOne(fetch = FetchType.EAGER, targetEntity = AssetType.class, optional = true)
 	private AssetType assetType;
-
-
 	@ManyToOne(fetch = FetchType.EAGER, targetEntity = AssetStorage.class, optional = true)
 	@JoinColumn(name = "ASSETSTORAGE_ID_FK", referencedColumnName = "AssetStorageID")
 	private AssetStorage assetStorage;
-
 	@ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REFRESH)
 	/*@JoinTable(name = Asset.ENTITY_NAME + "_" + Tag.ENTITY_NAME, joinColumns = @JoinColumn(name = Asset.ENTITY_NAME
 			+ "ID"), inverseJoinColumns = @JoinColumn(name = Tag.ENTITY_NAME + "ID"))*/
 	private Set<Tag> tags = new HashSet<Tag>();
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj == null) {
@@ -184,6 +152,21 @@ public class Asset {
 			success = true;
 		}
 		return success;
+	}
+
+	public static enum Status {
+		ENABLED(1), DISABLED(0), ARCHIVED(2), DELETED(3);
+
+		private int status;
+
+		private Status(int status) {
+			this.status = status;
+		}
+
+		@Override
+		public String toString() {
+			return "" + status;
+		}
 	}
 
 
