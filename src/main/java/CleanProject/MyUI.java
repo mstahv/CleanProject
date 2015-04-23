@@ -38,6 +38,7 @@ public class MyUI extends UI {
     protected void init(VaadinRequest vaadinRequest) {
         factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT);
         em = factory.createEntityManager();
+        ensureDemoData();
 
         //Service for Combobox, needs Enitity Manager
         final GenericAccessServiceImpl<Asset> assetDatabaseAccessService = new GenericAccessServiceImpl(Asset.class,em);
@@ -102,6 +103,26 @@ public class MyUI extends UI {
         layout.addComponent(horizontalLayout);
 
 
+    }
+
+    protected void ensureDemoData() {
+        em.getTransaction().begin();
+        Asset asset = new Asset();
+        asset.setName("Foo");
+        em.persist(asset);
+        asset = new Asset();
+        asset.setName("Foo2");
+        em.persist(asset);
+        asset = new Asset();
+        asset.setName("Foo3");
+        em.persist(asset);
+        asset = new Asset();
+        asset.setName("Bar");
+        em.persist(asset);
+        asset = new Asset();
+        asset.setName("Car");
+        em.persist(asset);
+        em.getTransaction().commit();
     }
 
     @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)
