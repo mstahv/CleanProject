@@ -8,17 +8,21 @@ import CleanProject.entities.AssetStorage;
 import com.vaadin.annotations.Theme;
 import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.annotations.Widgetset;
-import com.vaadin.data.Property;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Button.ClickEvent;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.servlet.annotation.WebServlet;
+import org.vaadin.viritin.fields.CaptionGenerator;
+import org.vaadin.viritin.fields.LazyComboBox;
+import org.vaadin.viritin.fields.MValueChangeEvent;
+import org.vaadin.viritin.fields.MValueChangeListener;
 
 /**
  *
@@ -31,7 +35,7 @@ public class MyUI extends UI {
     public static final String PERSISTENCE_UNIT = "JPAContainer";
     private static EntityManagerFactory factory;
     private static EntityManager em;
-    private SuggestingComboBox assetsComboBox;
+    private LazyComboBox<Asset> assetsComboBox;
     private SuggestingComboBox  assetsStorageComboBox;
 
     @Override
@@ -54,22 +58,39 @@ public class MyUI extends UI {
         layout.setMargin(true);
         setContent(layout);
 
+        // Naturally move this to separate class and/or use java 8
+        assetsComboBox = new LazyComboBox<>(Asset.class,
+                new LazyComboBox.FilterablePagingProvider<Asset>() {
 
+                    @Override
+                    public List<Asset> findEntities(int firstRow, String filter) {
+                        return assetDatabaseAccessService.searchInDataBase(
+                                filter, firstRow);
+                    }
+                }, new LazyComboBox.FilterableCountProvider() {
 
-        assetsComboBox = new SuggestingComboBox();
-        assetsComboBox.setContainerDataSource(assetContainer);
-        assetsComboBox.setImmediate(true);
-        assetsComboBox.setItemCaptionPropertyId("name");
-        assetsComboBox.setFilteringMode(FilteringMode.CONTAINS);
-        assetsComboBox.addValueChangeListener(new Property.ValueChangeListener() {
+                    @Override
+                    public int size(String filter) {
+                        return (int) assetDatabaseAccessService.countInDataBase(
+                                filter);
+                    }
+                },
+                30);
+        assetsComboBox.setCaptionGenerator(new CaptionGenerator<Asset>() {
+
             @Override
-            public void valueChange(Property.ValueChangeEvent event) {
-                // tell the custom container that a value has been selected. This is necessary to ensure that the
-                // selected value is displayed by the ComboBox
-                assetContainer.setSelectedBean(event.getProperty().getValue());
+            public String getCaption(Asset option) {
+                return option.getName();
             }
         });
+        
+        assetsComboBox.addMValueChangeListener(new MValueChangeListener<Asset>() {
 
+            @Override
+            public void valueChange(MValueChangeEvent<Asset> event) {
+                Notification.show(event.getValue().toString());
+            }
+        });
 
 
         assetsStorageComboBox = new SuggestingComboBox();
